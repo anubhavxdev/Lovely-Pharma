@@ -1,33 +1,45 @@
 # 💊 Lovely Pharma
 
-**Lovely Pharma** is a premium, production-level Quick-Commerce medicine delivery application engineered specifically for university and hostel students. Built entirely with Flutter, it offers a seamless, robust, and sensory-forward interface bridging students to campus pharmacy essentials instantly.
+**Lovely Pharma** is a premium, production-ready Quick-Commerce medicine delivery application engineered specifically for university and hostel students. Built with Flutter and backed by a robust Firebase cloud architecture, it offers a seamless, secure, and blazing-fast interface bridging students to campus pharmacy essentials instantly.
 
 ---
 
 ## ✨ Key Features
 
-- 🏎️ **Quick Commerce Dashboard**: A highly polished, Swiggy/Blinkit-style home screen featuring dynamic greeting headers, promotional carousel banners, and curated product discovery.
-- 🗺️ **Live Delivery Tracking Simulator**: A zero-config, API-free mapping experience powered by `flutter_map` and `OpenStreetMap`. Visually renders the campus, draws optimized routes, and simulates a 45-second animated runner delivering your order via GPS markers.
-- ❤️ **Persistent Wishlist Ecosystem**: Fully integrated `FavoriteProvider` state management allowing users to sync saved items effortlessly between the main dashboard and detailed product views.
-- 🔍 **Category Filtering Engine**: Smooth horizontal category lists (First Aid, Cold/Cough, Skin Care) that elegantly filter the master product grid dynamically.
-- 🛒 **Smart Cart & Checkout Validation**: Validates real-time inventory capacities, dynamic total calculations, and supports "Cash on Delivery" order flows out of the box.
+- 🏎️ **Quick Commerce Dashboard**: A highly polished, Blinkit-style home screen featuring dynamic greeting headers, promotional carousel banners, and curated product discovery.
+- 🔐 **Live Cloud Authentication**: Secure user management powered by `FirebaseAuth`, allowing students to register and sign in seamlessly across devices.
+- 📦 **Real-Time Inventory (Firestore)**: A fully synced `FirebaseFirestore` backend containing hundreds of diverse pharmacy products categorized elegantly across tabs (Pain Relief, First Aid, Cold/Cough, Skin Care).
+- 📸 **Prescription Upload System**: Built-in compliance logic enforcing image verification for restricted medicines. Users securely upload images via `firebase_storage` during checkout to unblock cart processing.
+- 🏢 **Multi-Location Delivery**: Extensible profile system that stores multiple hostel locations and room numbers per student, pre-filling checkout drop-downs for rapid order placement.
+- 📍 **Live Delivery Tracking Simulator**: An API-free mapping experience powered by `flutter_map`. Visually renders the campus, draws routes, and simulates an animated runner delivering your order via GPS markers.
+- 🔔 **Push Ready Architecture**: Pre-configured `firebase_messaging` engine allowing localized and grouped push notifications out of the box (FCM token generation).
+- ❤️ **Persistent Wishlist Ecosystem**: Fully integrated state management allowing users to sync saved items effortlessly between the main dashboard and detailed product views.
+
+---
 
 ## 🛠️ Technology Stack
 
 - **Framework**: Flutter (Android/iOS)
 - **Language**: Dart
 - **State Management**: `provider` (MultiProvider architecture for Cart, Auth, Orders, Favorites, and generic Medicines).
-- **Mapping Engine**: `flutter_map` + `latlong2` (No Google Maps API Key required!).
-- **Backend Architecture**: Designed with decoupled `Service`/`Provider` layers optimized for Firebase Firestore (currently running on isolated asynchronous mock streams for rapid UI prototyping).
+- **Backend & Cloud Services**: 
+  - `firebase_core` & `cloud_firestore` (NoSQL Real-time DB)
+  - `firebase_auth` (User Authentication Flow)
+  - `firebase_storage` (Bucket uploads for prescriptions)
+  - `firebase_messaging` (Cloud notifications engine)
+- **Mapping Engine**: `flutter_map` + `latlong2` (OpenStreetMap integration).
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 - Flutter SDK (`stable` branch)
 - Dart SDK
-- An Android Emulator or physical device (iOS works symmetrically but paths are structured for an Android-first build context).
+- Firebase Project with Auth (`Email/Password`), Firestore Database (in Test Mode/Configured Rules), and Storage Bucket enabled.
+- `google-services.json` generated from your Firebase console.
 
-### Installation
+### Installation & Deployment
 
 1. **Clone the repository:**
    ```bash
@@ -39,23 +51,23 @@
    cd Lovely-Pharma
    ```
 
-3. **Install Dependencies:**
+3. **Configure Firebase Secrets:**
+   - Drop your `google-services.json` inside the `android/app/` directory.
+
+4. **Install Dependencies:**
    ```bash
    flutter pub get
    ```
 
-4. **Run the Application:**
+5. **Populate your Cloud Database (One-time Setup):**
+   - Run the app via `flutter run`.
+   - On the Home Screen, tap the **Database Icon** (`🛢️` icon next to the profile avatar).
+   - This will instantly seed the active Firestore Database with nearly 200 realistic dummy products generated securely via the `lib/utils/seed_data.dart` script!
+
+6. **Run the Application:**
    ```bash
    flutter run
    ```
-
-## ⚠️ Note on Firebase Sandbox
-The application natively handles `Firebase.initializeApp()` in its root `main.dart`. To allow frictionless frontend UI testing, the active Firebase configurations are temporarily mocked using purely local streams within `database_service.dart` and `auth_service.dart`. 
-
-To transition to production:
-1. Re-enable `Firebase.initializeApp()` in `main.dart`.
-2. Generate your unique `google-services.json` via the Firebase Console.
-3. Repoint the `AuthService` and `DatabaseService` classes to output real `FirebaseAuth` and `FirebaseFirestore` streams.
 
 ---
 *Built with ❤️ for rapid campus healthcare.*

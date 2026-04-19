@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:lovely_pharma/providers/auth_provider.dart';
 import 'package:lovely_pharma/providers/cart_provider.dart';
@@ -6,6 +8,7 @@ import 'package:lovely_pharma/providers/order_provider.dart';
 import 'package:lovely_pharma/models/order_model.dart';
 import 'package:lovely_pharma/screens/main_screen.dart';
 import 'package:lovely_pharma/screens/tracking_screen.dart';
+import 'package:lovely_pharma/services/storage_service.dart';
 import 'package:lovely_pharma/utils/constants.dart';
 import 'package:lovely_pharma/widgets/shared_widgets.dart';
 import 'package:uuid/uuid.dart';
@@ -18,9 +21,14 @@ class CheckoutScreen extends StatefulWidget {
 }
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
-  final _hostelController = TextEditingController();
-  final _roomController = TextEditingController();
   bool _isLoading = false;
+  bool _requiresPrescription = false;
+  File? _prescriptionImage;
+  final ImagePicker _picker = ImagePicker();
+  final StorageService _storageService = StorageService();
+
+  List<Map<String, String>> _addresses = [];
+  Map<String, String>? _selectedAddress;
 
   @override
   void initState() {
@@ -28,14 +36,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // Prefill data
     final user = Provider.of<AuthProvider>(context, listen: false).userModel;
     if (user != null) {
-      _hostelController.text = user.hostel;
-      _roomController.text = user.roomNo;
+      _addresses = user.addresses;
+      if (_addresses.isNotEmpty) {
+        _selectedAddress = _addresses.first;
+      }
+    }
+    
+    // Check if prescription is required
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    _requiresPrescription = cartProvider.items.any((item) => item.medicine.requiresPrescription);
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _prescriptionImage = File(pickedFile.path);
+      });
     }
   }
 
   void _placeOrder() async {
-    if (_hostelController.text.isEmpty || _roomController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all delivery details')));
+    if (_selectedAddress == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please select a delivery address')));
+      return;
+    }
+
+    if (_requiresPrescription && _prescriptionImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please upload a prescription for restricted medicines')));
       return;
     }
 
@@ -46,6 +74,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
 
     final String orderId = const Uuid().v4();
+    String? prescriptionUrl;
+
+    if (_requiresPrescription && _prescriptionImage != null) {
+      prescriptionUrl = await _storageService.uploadPrescription(_prescriptionImage!, orderId);
+      if (prescriptionUrl == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to upload prescription')));
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+    }
+
     final itemsMap = cartProvider.items.map((item) => {
       'id': item.medicine.id,
       'name': item.medicine.name,
@@ -60,8 +101,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       totalPrice: cartProvider.totalAmount,
       status: 'Pending',
       timestamp: DateTime.now(),
-      hostel: _hostelController.text,
-      roomNo: _roomController.text,
+      hostel: _selectedAddress!['hostel'] ?? '',
+      roomNo: _selectedAddress!['roomNo'] ?? '',
+      prescriptionUrl: prescriptionUrl,
     );
 
     bool success = await orderProvider.placeNewOrder(order);
@@ -117,11 +159,66 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Delivery Details', style: AppTextStyles.heading),
+            Text('Delivery Address', style: AppTextStyles.heading),
             const SizedBox(height: 16),
-            CustomTextField(hint: 'Hostel Name', controller: _hostelController),
-            CustomTextField(hint: 'Room Number', controller: _roomController),
+            if (_addresses.isEmpty)
+              const Text('No addresses found. Please add one in Profile.')
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: DropdownButton<Map<String, String>>(
+                  isExpanded: true,
+                  value: _selectedAddress,
+                  underline: const SizedBox(),
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedAddress = newValue;
+                    });
+                  },
+                  items: _addresses.map<DropdownMenuItem<Map<String, String>>>((address) {
+                    return DropdownMenuItem<Map<String, String>>(
+                      value: address,
+                      child: Text('${address['hostel']} - Room ${address['roomNo']}'),
+                    );
+                  }).toList(),
+                ),
+              ),
             
+            if (_requiresPrescription) ...[
+              const SizedBox(height: 24),
+              Text('Prescription Required', style: AppTextStyles.heading.copyWith(color: Colors.red)),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  height: 150,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red.withOpacity(0.5)),
+                  ),
+                  child: _prescriptionImage != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(_prescriptionImage!, fit: BoxFit.cover),
+                        )
+                      : const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.camera_alt, size: 40, color: Colors.red),
+                            SizedBox(height: 8),
+                            Text('Tap to upload prescription', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 24),
             Text('Order Summary', style: AppTextStyles.heading),
             const SizedBox(height: 16),

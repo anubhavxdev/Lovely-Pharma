@@ -7,6 +7,7 @@ class OrderModel {
   final DateTime timestamp;
   final String hostel;
   final String roomNo;
+  final String? prescriptionUrl;
 
   OrderModel({
     required this.id,
@@ -17,6 +18,7 @@ class OrderModel {
     required this.timestamp,
     required this.hostel,
     required this.roomNo,
+    this.prescriptionUrl,
   });
 
   factory OrderModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -31,6 +33,7 @@ class OrderModel {
           : DateTime.now(),
       hostel: map['hostel'] ?? '',
       roomNo: map['roomNo'] ?? '',
+      prescriptionUrl: map['prescriptionUrl'],
     );
   }
 
@@ -43,6 +46,7 @@ class OrderModel {
       'timestamp': timestamp,
       'hostel': hostel,
       'roomNo': roomNo,
+      'prescriptionUrl': prescriptionUrl,
     };
   }
 }

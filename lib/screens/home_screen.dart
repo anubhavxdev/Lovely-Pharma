@@ -7,10 +7,11 @@ import 'package:lovely_pharma/providers/favorite_provider.dart';
 import 'package:lovely_pharma/models/medicine_model.dart';
 import 'package:lovely_pharma/screens/detail_screen.dart';
 import 'package:lovely_pharma/utils/constants.dart';
+import 'package:lovely_pharma/utils/seed_data.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -32,7 +33,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(user?.name ?? 'Student', user?.hostel ?? 'Campus Area'),
+              Builder(
+                builder: (context) {
+                  String displayLocation = 'Campus Area';
+                  if (user != null && user.addresses.isNotEmpty) {
+                    displayLocation = '${user.addresses.first['hostel']} - Rm ${user.addresses.first['roomNo']}';
+                  }
+                  return _buildHeader(user?.name ?? 'Student', displayLocation);
+                }
+              ),
               _buildSearchBar(medProvider),
               
               if (_searchController.text.isEmpty && medProvider.activeCategory.isEmpty) ...[
@@ -93,16 +102,30 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          GestureDetector(
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile options clicked')),
-              );
-            },
-            child: const CircleAvatar(
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.storage, color: AppColors.primary),
+                tooltip: 'Developer: Populate Database',
+                onPressed: () async {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Wait... Uploading dummy medicines!')));
+                  await SeedData.pushDummyMedicines();
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Done! Refreshing live...')));
+                },
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Profile options clicked')),
+                  );
+                },
+                child: const CircleAvatar(
+                  backgroundColor: AppColors.primary,
+                  child: Icon(Icons.person, color: Colors.white),
+                ),
+              ),
+            ],
           ),
         ],
       ),

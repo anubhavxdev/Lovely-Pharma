@@ -2,24 +2,36 @@ class UserModel {
   final String uid;
   final String name;
   final String email;
-  final String hostel;
-  final String roomNo;
+  final List<Map<String, String>> addresses;
 
   UserModel({
     required this.uid,
     required this.name,
     required this.email,
-    required this.hostel,
-    required this.roomNo,
+    required this.addresses,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map, String documentId) {
+    List<Map<String, String>> parsedAddresses = [];
+    if (map['addresses'] != null) {
+      for (var item in map['addresses']) {
+        parsedAddresses.add(Map<String, String>.from(item));
+      }
+    } else {
+      // Fallback for old data
+      if (map['hostel'] != null && map['roomNo'] != null) {
+        parsedAddresses.add({
+          'hostel': map['hostel'] ?? '',
+          'roomNo': map['roomNo'] ?? '',
+        });
+      }
+    }
+
     return UserModel(
       uid: documentId,
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      hostel: map['hostel'] ?? '',
-      roomNo: map['roomNo'] ?? '',
+      addresses: parsedAddresses,
     );
   }
 
@@ -27,8 +39,7 @@ class UserModel {
     return {
       'name': name,
       'email': email,
-      'hostel': hostel,
-      'roomNo': roomNo,
+      'addresses': addresses,
     };
   }
 }

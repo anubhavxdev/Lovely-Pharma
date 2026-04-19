@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:lovely_pharma/providers/auth_provider.dart';
 import 'package:lovely_pharma/providers/medicine_provider.dart';
@@ -9,18 +9,17 @@ import 'package:lovely_pharma/providers/favorite_provider.dart';
 import 'package:lovely_pharma/screens/splash_screen.dart';
 import 'package:lovely_pharma/utils/constants.dart';
 
+import 'package:lovely_pharma/services/notification_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Note: Firebase is temporarily disabled for UI testing
-  /*
   try {
     await Firebase.initializeApp();
+    await NotificationService().initialize();
   } catch (e) {
     print('Firebase initialization failed: $e');
-    print('Please configure Firebase using flutterfire configure');
   }
-  */
 
   runApp(
     MultiProvider(

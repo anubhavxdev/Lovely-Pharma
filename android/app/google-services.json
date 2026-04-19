@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "695148102199",
+    "project_id": "lovely-pharma-7ff42",
+    "storage_bucket": "lovely-pharma-7ff42.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:695148102199:android:8ae844c39d3116471a35b2",
+        "android_client_info": {
+          "package_name": "com.example.lovely_pharma"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyFfQ0m9ZcgtWZoi-oawrlWGcbbiSTpto"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,6 +6,7 @@ class MedicineModel {
   final String image;
   final int stock;
   final String category;
+  final bool requiresPrescription;
 
   MedicineModel({
     required this.id,
@@ -15,6 +16,7 @@ class MedicineModel {
     required this.image,
     required this.stock,
     this.category = 'General',
+    this.requiresPrescription = false,
   });
 
   factory MedicineModel.fromMap(Map<String, dynamic> map, String documentId) {
@@ -26,6 +28,7 @@ class MedicineModel {
       image: map['image'] ?? '',
       stock: map['stock'] ?? 0,
       category: map['category'] ?? 'General',
+      requiresPrescription: map['requiresPrescription'] ?? false,
     );
   }
 
@@ -37,6 +40,7 @@ class MedicineModel {
       'image': image,
       'stock': stock,
       'category': category,
+      'requiresPrescription': requiresPrescription,
     };
   }
 }
